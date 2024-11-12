@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 
 namespace JNogueira.Logger.Discord
@@ -14,11 +15,13 @@ namespace JNogueira.Logger.Discord
     {
         private readonly DiscordLoggerOptions _options;
         private readonly IHttpContextAccessor _httpContextAcessor;
+        private readonly IHttpClientFactory _clientFactory;
 
-        public DiscordLogger(DiscordLoggerOptions options, IHttpContextAccessor httpContextAcessor)
+        public DiscordLogger(DiscordLoggerOptions options, IHttpContextAccessor httpContextAcessor, IHttpClientFactory clientFactory)
         {
             _options            = options;
             _httpContextAcessor = httpContextAcessor;
+            _clientFactory = clientFactory;
         }
         
         public IDisposable BeginScope<TState>(TState state) => null;
@@ -27,7 +30,7 @@ namespace JNogueira.Logger.Discord
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
-            var client = new DiscordWebhookClient(_options.WebhookUrl);
+            var client = new DiscordWebhookClient(_options.WebhookUrl, _clientFactory.CreateClient(nameof(DiscordLogger)));
 
             DiscordMessage message = null;
 
